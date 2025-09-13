@@ -11,15 +11,21 @@
   },
   "dependencies": {
     "@types/uuid": "^10.0.0",
+    "axios": "^1.12.0",
     "date-fns": "^4.1.0",
+    "js-cookie": "^3.0.5",
+    "jwt-decode": "^4.0.0",
     "lucide-react": "^0.344.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-router-dom": "^7.9.0",
+    "react-toastify": "^11.0.5",
     "recharts": "^3.1.2",
     "uuid": "^12.0.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.1",
+    "@types/js-cookie": "^3.0.6",
     "@types/react": "^18.3.5",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",

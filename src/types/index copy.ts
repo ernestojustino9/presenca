@@ -4,7 +4,7 @@ export interface Employee {
   email: string;
   department: string;
   position: string;
-  status: "active" | "inactive";
+  status: 'active' | 'inactive';
   createdAt: string;
 }
 
@@ -18,14 +18,14 @@ export interface TimeEntry {
   breakEnd?: string;
   totalHours: number;
   extraHours: number;
-  status: "checked-in" | "checked-out" | "on-break";
+  status: 'checked-in' | 'checked-out' | 'on-break';
 }
 
 export interface User {
-  _id: string;
-  nome: string;
+  id: string;
+  name: string;
   email: string;
-  perfil: "ADMIN" | "ROOT" | "FUN";
+  role: 'admin' | 'manager' | 'employee';
 }
 
 export interface DashboardStats {
