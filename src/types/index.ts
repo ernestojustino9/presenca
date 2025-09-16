@@ -1,11 +1,8 @@
 export interface Employee {
-  id: string;
-  name: string;
-  email: string;
-  department: string;
-  position: string;
-  status: "active" | "inactive";
-  createdAt: string;
+  _id: string;
+  nome: string;
+  sobrenome: string;
+  nif: string;
 }
 
 export interface TimeEntry {

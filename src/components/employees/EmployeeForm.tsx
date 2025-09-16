@@ -1,56 +1,55 @@
-import React, { useState, useEffect } from 'react';
-import { Button } from '../ui/Button';
-import { Input } from '../ui/Input';
-import type { Employee } from '../../types';
+import React, { useState, useEffect } from "react";
+import { Button } from "../ui/Button";
+import { Input } from "../ui/Input";
+import type { Employee } from "../../types";
+import { createFuncionario } from "../../service/FuncionarioService";
 
 interface EmployeeFormProps {
   initialData?: Employee | null;
-  onSubmit: (data: Omit<Employee, 'id' | 'createdAt'>) => void;
+  onSubmit: (data: Omit<Employee, "_id" | "createdAt">) => void;
   onCancel: () => void;
 }
-
-const departments = [
-  'Desenvolvimento',
-  'Marketing',
-  'Recursos Humanos',
-  'Financeiro',
-  'Vendas',
-  'Operações',
-  'Administração'
-];
 
 export const EmployeeForm: React.FC<EmployeeFormProps> = ({
   initialData,
   onSubmit,
-  onCancel
+  onCancel,
 }) => {
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    department: '',
-    position: '',
-    status: 'active' as 'active' | 'inactive'
+    nome: "",
+    sobrenome: "",
+    nif: "",
   });
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (initialData) {
       setFormData({
-        name: initialData.name,
-        email: initialData.email,
-        department: initialData.department,
-        position: initialData.position,
-        status: initialData.status
+        nome: initialData.nome,
+        sobrenome: initialData.sobrenome,
+        nif: initialData.nif,
       });
     }
   }, [initialData]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    try {
+      setLoading(true);
+      const novoFuncionario = await createFuncionario(formData);
+      alert(`Funcionário ${novoFuncionario.nome} criado com sucesso!`);
+
+      // 🔹 Chama o callback para o parent atualizar a lista
+      onSubmit(formData);
+    } catch (error: any) {
+      alert(error.message || "Erro ao criar funcionário");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   return (
@@ -58,72 +57,39 @@ export const EmployeeForm: React.FC<EmployeeFormProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Nome Completo *
+            Nome *
           </label>
           <Input
             type="text"
-            value={formData.name}
-            onChange={(e) => handleChange('name', e.target.value)}
+            value={formData.nome}
+            onChange={(e) => handleChange("nome", e.target.value)}
             placeholder="Nome do funcionário"
             required
           />
         </div>
-
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Email *
-          </label>
-          <Input
-            type="email"
-            value={formData.email}
-            onChange={(e) => handleChange('email', e.target.value)}
-            placeholder="email@empresa.com"
-            required
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Departamento *
-          </label>
-          <select
-            value={formData.department}
-            onChange={(e) => handleChange('department', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            required
-          >
-            <option value="">Selecione um departamento</option>
-            {departments.map(dept => (
-              <option key={dept} value={dept}>{dept}</option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Cargo *
+            Sobrenome *
           </label>
           <Input
             type="text"
-            value={formData.position}
-            onChange={(e) => handleChange('position', e.target.value)}
-            placeholder="Cargo do funcionário"
+            value={formData.sobrenome}
+            onChange={(e) => handleChange("sobrenome", e.target.value)}
+            placeholder="Sobrenome do funcionário"
             required
           />
         </div>
-
-        <div className="md:col-span-2">
+        <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Status
+            NIF *
           </label>
-          <select
-            value={formData.status}
-            onChange={(e) => handleChange('status', e.target.value as 'active' | 'inactive')}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option value="active">Ativo</option>
-            <option value="inactive">Inativo</option>
-          </select>
+          <Input
+            type="text"
+            value={formData.nif}
+            onChange={(e) => handleChange("nif", e.target.value)}
+            placeholder="NIF do funcionário"
+            required
+          />
         </div>
       </div>
 
@@ -131,8 +97,12 @@ export const EmployeeForm: React.FC<EmployeeFormProps> = ({
         <Button variant="outline" onClick={onCancel} type="button">
           Cancelar
         </Button>
-        <Button type="submit">
-          {initialData ? 'Salvar Alterações' : 'Cadastrar Funcionário'}
+        <Button type="submit" disabled={loading}>
+          {loading
+            ? "Salvando..."
+            : initialData
+            ? "Salvar Alterações"
+            : "Cadastrar Funcionário"}
         </Button>
       </div>
     </form>

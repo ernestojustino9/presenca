@@ -11,7 +11,7 @@ export const createSession = async (data: {
   password: string;
 }): Promise<AuthResponse> => {
   try {
-    const response = await api.post<AuthResponse>("/auth", data);
+    const response = await api.post<AuthResponse>("/entrar", data);
     return response.data;
   } catch (error: any) {
     console.error(error.message);

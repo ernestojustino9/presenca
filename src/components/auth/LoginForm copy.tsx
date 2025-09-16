@@ -27,7 +27,17 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, isLoading }) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-       
+        {/* Logo/Header */}
+        <div className="text-center mb-8">
+          <div className="flex items-center justify-center mb-4">
+            <div className="bg-blue-600 p-3 rounded-xl">
+              <Clock className="w-8 h-8 text-white" />
+            </div>
+          </div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">TimeTracker Pro</h1>
+          <p className="text-gray-600">Sistema de Controle de Ponto</p>
+        </div>
+
         {/* Login Card */}
         <Card>
           <CardHeader>
@@ -88,7 +98,15 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, isLoading }) => {
                 )}
               </Button>
             </form>
+
             {/* Demo credentials */}
+            <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+              <p className="text-sm font-medium text-blue-900 mb-2">Credenciais de Demonstração:</p>
+              <p className="text-sm text-blue-800">
+                <strong>Email:</strong> admin@empresa.com<br />
+                <strong>Senha:</strong> admin123
+              </p>
+            </div>
           </CardContent>
         </Card>
       </div>

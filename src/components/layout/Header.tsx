@@ -16,7 +16,7 @@ export const Header: React.FC<HeaderProps> = ({ user, title }) => {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
           <p className="text-gray-500">
-            Bem-vindo de volta, {user.name.split(' ')[0]}!
+            {/* Bem-vindo de volta, {user.name.split(' ')[0]}! */}
           </p>
         </div>
 
@@ -40,8 +40,8 @@ export const Header: React.FC<HeaderProps> = ({ user, title }) => {
           {/* User Profile */}
           <div className="flex items-center space-x-3">
             <div className="text-right hidden md:block">
-              <p className="font-medium text-gray-900">{user.name}</p>
-              <p className="text-sm text-gray-500 capitalize">{user.role}</p>
+              {/* <p className="font-medium text-gray-900">{user.name}</p>
+              <p className="text-sm text-gray-500 capitalize">{user.role}</p> */}
             </div>
             <div className="bg-blue-100 p-2 rounded-full">
               <User className="w-5 h-5 text-blue-600" />
