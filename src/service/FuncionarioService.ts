@@ -9,16 +9,26 @@ const pegarErro = (error: unknown): string => {
   return "Ocorreu um erro desconhecido.";
 };
 
-export const createFuncionario = async (
-  data: Omit<Employee, "_id"> 
-): Promise<Employee> => {
+interface EmployeeResponse {
+  serializes: Employee[];
+}
+
+export const getFuncionarios = async (): Promise<EmployeeResponse> => {
   try {
-    const response = await api.post<Employee>("funcionarios", data);
+    const response = await api.get<EmployeeResponse>(`funcionarios`);
     return response.data;
   } catch (error) {
     throw new Error(pegarErro(error));
   }
 };
+
+export const createFuncionario = async (
+  data: Omit<Employee, "_id">
+): Promise<Employee> => {
+  const response = await api.post<Employee>("funcionarios", data);
+  return response.data; // deve conter _id
+};
+
 
 export const getFuncionarioById = async (id: string): Promise<Employee> => {
   try {
@@ -29,9 +39,11 @@ export const getFuncionarioById = async (id: string): Promise<Employee> => {
   }
 };
 
-export const excluirFuncionario = async (id: string): Promise<{ message: string }> => {
+export const deleteFuncionario = async (
+  id: string
+): Promise<{ message: string }> => {
   try {
-    const response = await api.delete<{ message: string }>(`funcionarios/${id}`);
+    const response = await api.delete<{ message: string }>(`funcionarios/excluir/${id}`);
     return response.data;
   } catch (error) {
     throw new Error(pegarErro(error));

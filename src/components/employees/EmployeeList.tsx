@@ -1,46 +1,57 @@
-import React, { useState } from 'react';
-import { Plus, Search, Edit2, Trash2, User, Mail, Briefcase } from 'lucide-react';
-import { Button } from '../ui/Button';
-import { Input } from '../ui/Input';
-import { Card, CardHeader, CardContent, CardTitle } from '../ui/Card';
-import { Modal } from '../ui/Modal';
-import { EmployeeForm } from './EmployeeForm';
-import { useEmployees } from '../../hooks/useEmployees';
-import type { Employee } from '../../types';
+import React, { useState, useEffect } from "react";
+import {
+  Plus,
+  Search,
+  Edit2,
+  Trash2,
+  User,
+} from "lucide-react";
+import { Button } from "../ui/Button";
+import { Input } from "../ui/Input";
+import { Card, CardContent } from "../ui/Card";
+import { Modal } from "../ui/Modal";
+import { EmployeeForm } from "./EmployeeForm";
+import {
+  getFuncionarios,
+  deleteFuncionario,
+} from "../../service/FuncionarioService";
+import type { Employee } from "../../types";
+import { toast } from "react-toastify";
 
 export const EmployeeList: React.FC = () => {
-  const { employees, addEmployee, updateEmployee, deleteEmployee } = useEmployees();
-  const [searchTerm, setSearchTerm] = useState('');
+const [employees, setEmployees] = useState<Employee[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
+  const [highlightedId, setHighlightedId] = useState<string | null>(null);
 
-  const filteredEmployees = employees.filter(employee =>
-    employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    employee.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    employee.department.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const handleAddEmployee = (employeeData: Omit<Employee, 'id' | 'createdAt'>) => {
-    addEmployee(employeeData);
-    setIsModalOpen(false);
-  };
-
-  const handleUpdateEmployee = (employeeData: Omit<Employee, 'id' | 'createdAt'>) => {
-    if (editingEmployee) {
-      updateEmployee(editingEmployee.id, employeeData);
-      setEditingEmployee(null);
-      setIsModalOpen(false);
+  const fetchEmployees = async () => {
+    try {
+      const data = await getFuncionarios();
+      setEmployees(data.serializes);
+    } catch (error: any) {
+      toast.error("Erro ao carregar funcionários");
     }
   };
+
+  useEffect(() => {
+    fetchEmployees();
+  }, []);
 
   const handleEditClick = (employee: Employee) => {
     setEditingEmployee(employee);
     setIsModalOpen(true);
   };
 
-  const handleDeleteClick = (employeeId: string) => {
-    if (window.confirm('Tem certeza que deseja excluir este funcionário?')) {
-      deleteEmployee(employeeId);
+  const handleDeleteClick = async (employeeId: string) => {
+    if (window.confirm("Tem certeza que deseja excluir este funcionário?")) {
+      try {
+        await deleteFuncionario(employeeId);
+        toast.success("Funcionário excluído com sucesso!");
+        fetchEmployees();
+      } catch (error: any) {
+        toast.error("Erro ao excluir funcionário");
+      }
     }
   };
 
@@ -49,17 +60,20 @@ export const EmployeeList: React.FC = () => {
     setEditingEmployee(null);
   };
 
-  const getStatusBadge = (status: string) => {
-    return (
-      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-        status === 'active' 
-          ? 'bg-green-100 text-green-800' 
-          : 'bg-red-100 text-red-800'
-      }`}>
-        {status === 'active' ? 'Ativo' : 'Inativo'}
-      </span>
-    );
+  const handleSave = async (newEmployeeId?: string) => {
+    await fetchEmployees();
+    if (newEmployeeId) {
+      setHighlightedId(newEmployeeId);
+      setTimeout(() => setHighlightedId(null), 3000); // remove destaque após 3s
+    }
   };
+
+  const filteredEmployees = employees.filter(
+    (employee) =>
+      employee.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      employee.sobrenome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      employee.nif.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="space-y-6">
@@ -88,37 +102,11 @@ export const EmployeeList: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Total</p>
-                <p className="text-2xl font-bold text-gray-900">{employees.length}</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {employees.length}
+                </p>
               </div>
               <User className="w-8 h-8 text-blue-600" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Ativos</p>
-                <p className="text-2xl font-bold text-green-600">
-                  {employees.filter(emp => emp.status === 'active').length}
-                </p>
-              </div>
-              <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                <div className="w-3 h-3 bg-green-600 rounded-full"></div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Departamentos</p>
-                <p className="text-2xl font-bold text-purple-600">
-                  {new Set(employees.map(emp => emp.department)).size}
-                </p>
-              </div>
-              <Briefcase className="w-8 h-8 text-purple-600" />
             </div>
           </CardContent>
         </Card>
@@ -127,7 +115,12 @@ export const EmployeeList: React.FC = () => {
       {/* Employee List */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredEmployees.map((employee) => (
-          <Card key={employee.id} className="hover:shadow-lg transition-shadow">
+          <Card
+            key={employee._id}
+            className={`hover:shadow-lg transition-shadow ${
+              highlightedId === employee._id ? "border-2 border-green-500" : ""
+            }`}
+          >
             <CardContent>
               <div className="flex items-start justify-between mb-4">
                 <div className="bg-blue-100 p-3 rounded-full">
@@ -145,37 +138,19 @@ export const EmployeeList: React.FC = () => {
                   <Button
                     variant="danger"
                     size="sm"
-                    onClick={() => handleDeleteClick(employee.id)}
+                    onClick={() => handleDeleteClick(employee._id)}
                     className="p-2"
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
                 </div>
               </div>
-              
+
               <div className="space-y-3">
-                <div>
-                  <h3 className="font-semibold text-gray-900">{employee.name}</h3>
-                  <p className="text-sm text-gray-600">{employee.position}</p>
-                </div>
-                
-                <div className="space-y-2 text-sm text-gray-600">
-                  <div className="flex items-center">
-                    <Mail className="w-4 h-4 mr-2" />
-                    {employee.email}
-                  </div>
-                  <div className="flex items-center">
-                    <Briefcase className="w-4 h-4 mr-2" />
-                    {employee.department}
-                  </div>
-                </div>
-                
-                <div className="flex items-center justify-between pt-2">
-                  {getStatusBadge(employee.status)}
-                  <span className="text-xs text-gray-500">
-                    Desde {new Date(employee.createdAt).toLocaleDateString()}
-                  </span>
-                </div>
+                <h3 className="font-semibold text-gray-900">
+                  {employee.nome} {employee.sobrenome}
+                </h3>
+                <p className="text-sm text-gray-600">NIF: {employee.nif}</p>
               </div>
             </CardContent>
           </Card>
@@ -188,7 +163,9 @@ export const EmployeeList: React.FC = () => {
             <div className="text-center py-8">
               <User className="w-12 h-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-500">
-                {searchTerm ? 'Nenhum funcionário encontrado com os critérios de busca.' : 'Nenhum funcionário cadastrado ainda.'}
+                {searchTerm
+                  ? "Nenhum funcionário encontrado com os critérios de busca."
+                  : "Nenhum funcionário cadastrado ainda."}
               </p>
             </div>
           </CardContent>
@@ -199,12 +176,12 @@ export const EmployeeList: React.FC = () => {
       <Modal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
-        title={editingEmployee ? 'Editar Funcionário' : 'Novo Funcionário'}
+        title={editingEmployee ? "Editar Funcionário" : "Novo Funcionário"}
       >
         <EmployeeForm
           initialData={editingEmployee}
-          onSubmit={editingEmployee ? handleUpdateEmployee : handleAddEmployee}
           onCancel={handleCloseModal}
+          onSave={handleSave}
         />
       </Modal>
     </div>

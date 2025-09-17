@@ -1,55 +1,71 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
+import { createFuncionario, updateFuncionario } from "../../service/FuncionarioService";
 import type { Employee } from "../../types";
-import { createFuncionario } from "../../service/FuncionarioService";
+import { toast } from "react-toastify";
 
 interface EmployeeFormProps {
   initialData?: Employee | null;
-  onSubmit: (data: Omit<Employee, "_id" | "createdAt">) => void;
   onCancel: () => void;
+  onSave: (id?: string) => void;  // retorna ID do novo funcionário
 }
 
-export const EmployeeForm: React.FC<EmployeeFormProps> = ({
-  initialData,
-  onSubmit,
-  onCancel,
-}) => {
-  const [formData, setFormData] = useState({
-    nome: "",
-    sobrenome: "",
-    nif: "",
+export const EmployeeForm: React.FC<EmployeeFormProps> = ({ initialData, onCancel, onSave }) => {
+  const [formData, setFormData] = useState<Omit<Employee, "_id">>({
+    nome: initialData?.nome || "",
+    sobrenome: initialData?.sobrenome || "",
+    nif: initialData?.nif || "",
   });
+
   const [loading, setLoading] = useState(false);
+  const [nifError, setNifError] = useState("");
 
-  useEffect(() => {
-    if (initialData) {
-      setFormData({
-        nome: initialData.nome,
-        sobrenome: initialData.sobrenome,
-        nif: initialData.nif,
-      });
-    }
-  }, [initialData]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      setLoading(true);
-      const novoFuncionario = await createFuncionario(formData);
-      alert(`Funcionário ${novoFuncionario.nome} criado com sucesso!`);
-
-      // 🔹 Chama o callback para o parent atualizar a lista
-      onSubmit(formData);
-    } catch (error: any) {
-      alert(error.message || "Erro ao criar funcionário");
-    } finally {
-      setLoading(false);
+  const handleNifChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, "");
+    if (value.length <= 14) {
+      setFormData((prev) => ({ ...prev, nif: value }));
+      if (value.length > 0 && value.length < 14) {
+        setNifError("O NIF deve conter 14 números.");
+      } else {
+        setNifError("");
+      }
     }
   };
 
-  const handleChange = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (formData.nif.length !== 14) {
+      setNifError("O NIF deve conter exatamente 14 números.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      let savedId: string | undefined;
+      if (initialData?._id) {
+        await updateFuncionario(initialData._id, formData);
+        toast.success("Funcionário atualizado com sucesso!");
+        savedId = initialData._id;
+      } else {
+        const newEmployee = await createFuncionario(formData);
+        toast.success("Funcionário criado com sucesso!");
+        savedId = newEmployee._id; // backend deve devolver o id
+        setFormData({ nome: "", sobrenome: "", nif: "" });
+      }
+      onSave(savedId); // 🔹 Atualiza lista + destaca novo funcionário
+      onCancel();
+    } catch (error: any) {
+      toast.error(error.message || "Erro ao salvar funcionário");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -61,8 +77,9 @@ export const EmployeeForm: React.FC<EmployeeFormProps> = ({
           </label>
           <Input
             type="text"
+            name="nome"
             value={formData.nome}
-            onChange={(e) => handleChange("nome", e.target.value)}
+            onChange={handleChange}
             placeholder="Nome do funcionário"
             required
           />
@@ -73,8 +90,9 @@ export const EmployeeForm: React.FC<EmployeeFormProps> = ({
           </label>
           <Input
             type="text"
+            name="sobrenome"
             value={formData.sobrenome}
-            onChange={(e) => handleChange("sobrenome", e.target.value)}
+            onChange={handleChange}
             placeholder="Sobrenome do funcionário"
             required
           />
@@ -85,11 +103,16 @@ export const EmployeeForm: React.FC<EmployeeFormProps> = ({
           </label>
           <Input
             type="text"
+            name="nif"
             value={formData.nif}
-            onChange={(e) => handleChange("nif", e.target.value)}
+            onChange={handleNifChange}
             placeholder="NIF do funcionário"
             required
+            // maxLength={14}
           />
+          {nifError && (
+            <p className="text-xs text-red-500 mt-1">{nifError}</p>
+          )}
         </div>
       </div>
 
