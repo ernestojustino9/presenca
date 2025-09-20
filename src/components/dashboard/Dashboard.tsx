@@ -48,8 +48,8 @@ export const Dashboard: React.FC = () => {
     return timeEntries
       .filter(entry => entry.date === today)
       .map(entry => {
-        const employee = employees.find(emp => emp.id === entry.employeeId);
-        return { ...entry, employeeName: employee?.name || 'Funcionário não encontrado' };
+        const employee = employees.find(emp => emp._id === entry.employeeId);
+        return { ...entry, employeeName: employee?.nome || 'Funcionário não encontrado' };
       })
       .sort((a, b) => a.employeeName.localeCompare(b.employeeName));
   }, [timeEntries, employees]);
@@ -59,8 +59,8 @@ export const Dashboard: React.FC = () => {
       .slice(-5)
       .reverse()
       .map(entry => {
-        const employee = employees.find(emp => emp.id === entry.employeeId);
-        return { ...entry, employeeName: employee?.name || 'Funcionário não encontrado' };
+        const employee = employees.find(emp => emp._id === entry.employeeId);
+        return { ...entry, employeeName: employee?.nome || 'Funcionário não encontrado' };
       });
   }, [timeEntries, employees]);
 

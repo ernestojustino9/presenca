@@ -17,13 +17,14 @@ export const TimesheetView: React.FC = () => {
   const activeEmployees = employees.filter(emp => emp.status === 'active');
 
   const filteredEmployees = activeEmployees.filter(employee =>
-    employee.nome.toLowerCase().includes(searchTerm.toLowerCase()) 
+    employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    employee.department.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const employeesWithTimeData = useMemo(() => {
     return filteredEmployees.map(employee => {
       const todayEntry = timeEntries.find(
-        entry => entry.employeeId === employee._id && entry.date === selectedDate
+        entry => entry.employeeId === employee.id && entry.date === selectedDate
       );
 
       return {
@@ -192,10 +193,11 @@ export const TimesheetView: React.FC = () => {
               </thead>
               <tbody>
                 {employeesWithTimeData.map((employee) => (
-                  <tr key={employee._id} className="border-b border-gray-100 hover:bg-gray-50">
+                  <tr key={employee.id} className="border-b border-gray-100 hover:bg-gray-50">
                     <td className="py-4 px-4">
                       <div>
-                        <p className="font-medium text-gray-900">{employee.nome}</p>
+                        <p className="font-medium text-gray-900">{employee.name}</p>
+                        <p className="text-sm text-gray-600">{employee.department}</p>
                       </div>
                     </td>
                     <td className="py-4 px-4 text-center">
@@ -233,7 +235,7 @@ export const TimesheetView: React.FC = () => {
                           <Button
                             size="sm"
                             variant="success"
-                            onClick={() => handleAction('clockIn', employee._id)}
+                            onClick={() => handleAction('clockIn', employee.id)}
                           >
                             <Play className="w-4 h-4 mr-1" />
                             Entrada
@@ -244,7 +246,7 @@ export const TimesheetView: React.FC = () => {
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => handleAction('startBreak', employee._id)}
+                            onClick={() => handleAction('startBreak', employee.id)}
                           >
                             <Coffee className="w-4 h-4 mr-1" />
                             Intervalo
@@ -255,7 +257,7 @@ export const TimesheetView: React.FC = () => {
                           <Button
                             size="sm"
                             variant="secondary"
-                            onClick={() => handleAction('endBreak', employee._id)}
+                            onClick={() => handleAction('endBreak', employee.id)}
                           >
                             <Play className="w-4 h-4 mr-1" />
                             Voltar
@@ -266,7 +268,7 @@ export const TimesheetView: React.FC = () => {
                           <Button
                             size="sm"
                             variant="danger"
-                            onClick={() => handleAction('clockOut', employee._id)}
+                            onClick={() => handleAction('clockOut', employee.id)}
                           >
                             <Square className="w-4 h-4 mr-1" />
                             Saída

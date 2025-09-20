@@ -1,11 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-  Plus,
-  Search,
-  Edit2,
-  Trash2,
-  User,
-} from "lucide-react";
+import { Plus, Search, Edit2, Trash2, User, ToggleLeft, ToggleRight } from "lucide-react";
 import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
 import { Card, CardContent } from "../ui/Card";
@@ -14,12 +8,13 @@ import { EmployeeForm } from "./EmployeeForm";
 import {
   getFuncionarios,
   deleteFuncionario,
+  updateFuncionario,
 } from "../../service/FuncionarioService";
 import type { Employee } from "../../types";
 import { toast } from "react-toastify";
 
 export const EmployeeList: React.FC = () => {
-const [employees, setEmployees] = useState<Employee[]>([]);
+  const [employees, setEmployees] = useState<Employee[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
@@ -55,6 +50,19 @@ const [employees, setEmployees] = useState<Employee[]>([]);
     }
   };
 
+  const handleToggleStatus = async (employee: Employee) => {
+    try {
+      const newStatus = employee.status === "active" ? "inactive" : "active";
+      await updateFuncionario(employee._id, { ...employee, status: newStatus });
+      toast.success(
+        `Funcionário ${newStatus === "active" ? "ativado" : "inativado"} com sucesso!`
+      );
+      fetchEmployees();
+    } catch {
+      toast.error("Erro ao atualizar status do funcionário");
+    }
+  };
+
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setEditingEmployee(null);
@@ -64,7 +72,7 @@ const [employees, setEmployees] = useState<Employee[]>([]);
     await fetchEmployees();
     if (newEmployeeId) {
       setHighlightedId(newEmployeeId);
-      setTimeout(() => setHighlightedId(null), 3000); // remove destaque após 3s
+      setTimeout(() => setHighlightedId(null), 3000);
     }
   };
 
@@ -74,6 +82,9 @@ const [employees, setEmployees] = useState<Employee[]>([]);
       employee.sobrenome.toLowerCase().includes(searchTerm.toLowerCase()) ||
       employee.nif.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const activeCount = employees.filter((e) => e.status === "active").length;
+  const inactiveCount = employees.filter((e) => e.status === "inactive").length;
 
   return (
     <div className="space-y-6">
@@ -102,12 +113,22 @@ const [employees, setEmployees] = useState<Employee[]>([]);
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Total</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {employees.length}
-                </p>
+                <p className="text-2xl font-bold text-gray-900">{employees.length}</p>
               </div>
               <User className="w-8 h-8 text-blue-600" />
             </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent>
+            <p className="text-sm font-medium text-gray-600">Ativos</p>
+            <p className="text-xl font-bold text-green-600">{activeCount}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent>
+            <p className="text-sm font-medium text-gray-600">Inativos</p>
+            <p className="text-xl font-bold text-red-600">{inactiveCount}</p>
           </CardContent>
         </Card>
       </div>
@@ -136,6 +157,18 @@ const [employees, setEmployees] = useState<Employee[]>([]);
                     <Edit2 className="w-4 h-4" />
                   </Button>
                   <Button
+                    variant={employee.status === "active" ? "danger" : "success"}
+                    size="sm"
+                    onClick={() => handleToggleStatus(employee)}
+                    className="p-2"
+                  >
+                    {employee.status === "active" ? (
+                      <ToggleLeft className="w-4 h-4" />
+                    ) : (
+                      <ToggleRight className="w-4 h-4" />
+                    )}
+                  </Button>
+                  <Button
                     variant="danger"
                     size="sm"
                     onClick={() => handleDeleteClick(employee._id)}
@@ -151,6 +184,15 @@ const [employees, setEmployees] = useState<Employee[]>([]);
                   {employee.nome} {employee.sobrenome}
                 </h3>
                 <p className="text-sm text-gray-600">NIF: {employee.nif}</p>
+                <span
+                  className={`inline-block px-2 py-1 text-xs rounded-full ${
+                    employee.status === "active"
+                      ? "bg-green-100 text-green-700"
+                      : "bg-red-100 text-red-700"
+                  }`}
+                >
+                  {employee.status === "active" ? "Ativo" : "Inativo"}
+                </span>
               </div>
             </CardContent>
           </Card>

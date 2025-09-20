@@ -3,6 +3,7 @@ export interface Employee {
   nome: string;
   sobrenome: string;
   nif: string;
+  status: "active" | "inactive";
 }
 
 export interface TimeEntry {

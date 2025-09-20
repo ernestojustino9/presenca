@@ -86,12 +86,12 @@ export const useAttendance = () => {
       const dailyRecords = weekDays.map(day => {
         const dateStr = format(day, 'yyyy-MM-dd');
         const existingRecord = attendanceRecords.find(
-          record => record.employeeId === employee.id && record.date === dateStr
+          record => record.employeeId === employee._id && record.date === dateStr
         );
 
         return existingRecord || {
           id: uuidv4(),
-          employeeId: employee.id,
+          employeeId: employee._id,
           date: dateStr,
           present: false,
           regularHours: 0,
@@ -138,12 +138,12 @@ export const useAttendance = () => {
       const dailyRecords = monthDays.map(day => {
         const dateStr = format(day, 'yyyy-MM-dd');
         const existingRecord = attendanceRecords.find(
-          record => record.employeeId === employee.id && record.date === dateStr
+          record => record.employeeId === employee._id && record.date === dateStr
         );
 
         return existingRecord || {
           id: uuidv4(),
-          employeeId: employee.id,
+          employeeId: employee._id,
           date: dateStr,
           present: false,
           regularHours: 0,

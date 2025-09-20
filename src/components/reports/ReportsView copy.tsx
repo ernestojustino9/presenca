@@ -52,7 +52,7 @@ export const ReportsView: React.FC = () => {
     });
 
     const employeeStats = employees.map(employee => {
-      const employeeEntries = filteredEntries.filter(entry => entry.employeeId === employee._id);
+      const employeeEntries = filteredEntries.filter(entry => entry.employeeId === employee.id);
       
       const totalHours = employeeEntries.reduce((sum, entry) => sum + entry.totalHours, 0);
       const extraHours = employeeEntries.reduce((sum, entry) => sum + entry.extraHours, 0);
@@ -105,7 +105,8 @@ export const ReportsView: React.FC = () => {
     const csvContent = [
       ['Nome', 'Departamento', 'Horas Trabalhadas', 'Horas Extras', 'Dias Trabalhados', 'Atrasos', 'Pontualidade (%)'].join(','),
       ...reportData.employeeStats.map(emp => [
-        emp.nome,
+        emp.name,
+        emp.department,
         emp.totalHours,
         emp.extraHours,
         emp.workingDays,
@@ -263,11 +264,15 @@ export const ReportsView: React.FC = () => {
               </thead>
               <tbody>
                 {reportData.employeeStats.map((employee) => (
-                  <tr key={employee._id} className="border-b border-gray-100 hover:bg-gray-50">
+                  <tr key={employee.id} className="border-b border-gray-100 hover:bg-gray-50">
                     <td className="py-4 px-4">
                       <div>
-                        <p className="font-medium text-gray-900">{employee.nome}</p>
+                        <p className="font-medium text-gray-900">{employee.name}</p>
+                        <p className="text-sm text-gray-600">{employee.position}</p>
                       </div>
+                    </td>
+                    <td className="py-4 px-4 text-center text-gray-600">
+                      {employee.department}
                     </td>
                     <td className="py-4 px-4 text-center">
                       <span className="font-medium text-blue-600">{employee.totalHours}h</span>

@@ -97,8 +97,7 @@ export const AttendanceSheet: React.FC = () => {
     ].join(',');
 
     const csvRows = attendanceData.employees.map(emp => [
-      emp.employee.name,
-      emp.employee.department,
+      emp.employee.nome,
       ...emp.dailyRecords.map(record => record.present ? 'P' : 'F'),
       viewType === 'weekly' ? emp.weeklyTotals.daysPresent : emp.monthlyTotals.daysPresent,
       viewType === 'weekly' ? emp.weeklyTotals.regularHours : emp.monthlyTotals.regularHours,
@@ -256,11 +255,10 @@ export const AttendanceSheet: React.FC = () => {
               </thead>
               <tbody>
                 {attendanceData.employees.map((empData) => (
-                  <tr key={empData.employee.id} className="border-b border-gray-100 hover:bg-gray-50">
+                  <tr key={empData.employee._id} className="border-b border-gray-100 hover:bg-gray-50">
                     <td className="py-3 px-4 sticky left-0 bg-white">
                       <div>
-                        <p className="font-medium text-gray-900">{empData.employee.name}</p>
-                        <p className="text-sm text-gray-600">{empData.employee.department}</p>
+                        <p className="font-medium text-gray-900">{empData.employee.nome}</p>
                       </div>
                     </td>
                     {empData.dailyRecords.map((record) => (
