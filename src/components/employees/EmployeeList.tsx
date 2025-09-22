@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { Plus, Search, Edit2, Trash2, User, ToggleLeft, ToggleRight } from "lucide-react";
+import {
+  Plus,
+  Search,
+  Edit2,
+  Trash2,
+  User,
+  ToggleLeft,
+  ToggleRight,
+} from "lucide-react";
 import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
 import { Card, CardContent } from "../ui/Card";
@@ -20,6 +28,10 @@ export const EmployeeList: React.FC = () => {
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
 
+  useEffect(() => {
+    fetchEmployees();
+  }, []);
+  
   const fetchEmployees = async () => {
     try {
       const data = await getFuncionarios();
@@ -28,10 +40,6 @@ export const EmployeeList: React.FC = () => {
       toast.error("Erro ao carregar funcionários");
     }
   };
-
-  useEffect(() => {
-    fetchEmployees();
-  }, []);
 
   const handleEditClick = (employee: Employee) => {
     setEditingEmployee(employee);
@@ -55,7 +63,9 @@ export const EmployeeList: React.FC = () => {
       const newStatus = employee.status === "active" ? "inactive" : "active";
       await updateFuncionario(employee._id, { ...employee, status: newStatus });
       toast.success(
-        `Funcionário ${newStatus === "active" ? "ativado" : "inativado"} com sucesso!`
+        `Funcionário ${
+          newStatus === "active" ? "ativado" : "inativado"
+        } com sucesso!`
       );
       fetchEmployees();
     } catch {
@@ -113,7 +123,9 @@ export const EmployeeList: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Total</p>
-                <p className="text-2xl font-bold text-gray-900">{employees.length}</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {employees.length}
+                </p>
               </div>
               <User className="w-8 h-8 text-blue-600" />
             </div>
@@ -157,7 +169,9 @@ export const EmployeeList: React.FC = () => {
                     <Edit2 className="w-4 h-4" />
                   </Button>
                   <Button
-                    variant={employee.status === "active" ? "danger" : "success"}
+                    variant={
+                      employee.status === "active" ? "danger" : "success"
+                    }
                     size="sm"
                     onClick={() => handleToggleStatus(employee)}
                     className="p-2"

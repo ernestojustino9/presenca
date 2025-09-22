@@ -1,17 +1,19 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from "react";
 import { Calendar, Download, TrendingUp, Clock, Users, BarChart3 } from 'lucide-react';
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Card, CardHeader, CardContent, CardTitle } from '../ui/Card';
-import { useEmployees } from '../../hooks/useEmployees';
 import { useTimeEntries } from '../../hooks/useTimeEntries';
+import { Employee } from "../../types";
+import { toast } from "react-toastify";
+import { getFuncionarios } from "../../service/FuncionarioService";
 
 type ReportPeriod = 'week' | 'month' | 'custom';
 
 export const ReportsView: React.FC = () => {
-  const { employees } = useEmployees();
+  const [employees, setEmployees] = useState<Employee[]>([]);
   const { timeEntries } = useTimeEntries();
   const [period, setPeriod] = useState<ReportPeriod>('week');
   const [startDate, setStartDate] = useState(format(startOfWeek(new Date()), 'yyyy-MM-dd'));
@@ -50,6 +52,20 @@ export const ReportsView: React.FC = () => {
       const entryDate = parseISO(entry.date);
       return isWithinInterval(entryDate, dateRange);
     });
+
+
+      useEffect(() => {
+        fetchEmployees();
+      }, []);
+    
+      const fetchEmployees = async () => {
+        try {
+          const data = await getFuncionarios();
+          setEmployees(data.serializes);
+        } catch (error: any) {
+          toast.error("Erro ao carregar funcionários");
+        }
+      };
 
     const employeeStats = employees.map(employee => {
       const employeeEntries = filteredEntries.filter(entry => entry.employeeId === employee._id);

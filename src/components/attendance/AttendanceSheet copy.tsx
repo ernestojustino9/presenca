@@ -89,11 +89,11 @@ export const AttendanceSheet: React.FC = () => {
         (day) => !isWeekend(day)
       );
     } else {
-      // const monthStart = startOfMonth(currentDate);
-      // const monthEnd = endOfMonth(currentDate);
-      // return eachDayOfInterval({ start: monthStart, end: monthEnd }).filter(
-      //   (day) => !isWeekend(day)
-      // );
+      const monthStart = startOfMonth(currentDate);
+      const monthEnd = endOfMonth(currentDate);
+      return eachDayOfInterval({ start: monthStart, end: monthEnd }).filter(
+        (day) => !isWeekend(day)
+      );
     }
   }, [viewType, currentDate]);
 
@@ -138,7 +138,7 @@ export const AttendanceSheet: React.FC = () => {
     const csvHeader = [
       "Funcionário",
       "Departamento",
-      // ...workingDays.map((day) => format(day, "dd/MM")),
+      ...workingDays.map((day) => format(day, "dd/MM")),
       "Dias Presentes",
       "Horas Regulares",
       "Horas Extras",
@@ -150,17 +150,17 @@ export const AttendanceSheet: React.FC = () => {
         emp.employee.nome,
         ...emp.dailyRecords.map((record) => (record.present ? "P" : "F")),
         viewType === "weekly"
-        //   ? emp.weeklyTotals.daysPresent
-        //   : emp.monthlyTotals.daysPresent,
-        // viewType === "weekly"
-        //   ? emp.weeklyTotals.regularHours
-        //   : emp.monthlyTotals.regularHours,
-        // viewType === "weekly"
-        //   ? emp.weeklyTotals.extraHours
-        //   : emp.monthlyTotals.extraHours,
-        // viewType === "weekly"
-        //   ? emp.weeklyTotals.totalHours
-        //   : emp.monthlyTotals.totalHours,
+          ? emp.weeklyTotals.daysPresent
+          : emp.monthlyTotals.daysPresent,
+        viewType === "weekly"
+          ? emp.weeklyTotals.regularHours
+          : emp.monthlyTotals.regularHours,
+        viewType === "weekly"
+          ? emp.weeklyTotals.extraHours
+          : emp.monthlyTotals.extraHours,
+        viewType === "weekly"
+          ? emp.weeklyTotals.totalHours
+          : emp.monthlyTotals.totalHours,
       ].join(",")
     );
 
@@ -319,7 +319,7 @@ export const AttendanceSheet: React.FC = () => {
                   <th className="text-left py-3 px-4 font-medium text-gray-900 sticky left-0 bg-white">
                     Funcionário
                   </th>
-                  {/* {workingDays.map((day) => (
+                  {workingDays.map((day) => (
                     <th
                       key={day.toISOString()}
                       className="text-center py-3 px-2 font-medium text-gray-900 min-w-[80px]"
@@ -331,7 +331,7 @@ export const AttendanceSheet: React.FC = () => {
                         <div>{format(day, "dd/MM")}</div>
                       </div>
                     </th>
-                  ))} */}
+                  ))}
                   <th className="text-center py-3 px-4 font-medium text-gray-900 bg-blue-50">
                     Dias
                   </th>
@@ -392,32 +392,32 @@ export const AttendanceSheet: React.FC = () => {
                     ))}
                     <td className="py-3 px-4 text-center bg-blue-50">
                       <span className="font-bold text-blue-600">
-                        {/* {viewType === "weekly"
+                        {viewType === "weekly"
                           ? empData.weeklyTotals.daysPresent
-                          : empData.monthlyTotals.daysPresent} */}
+                          : empData.monthlyTotals.daysPresent}
                       </span>
                     </td>
                     <td className="py-3 px-4 text-center bg-green-50">
                       <span className="font-bold text-green-600">
-                        {/* {viewType === "weekly"
+                        {viewType === "weekly"
                           ? empData.weeklyTotals.regularHours
-                          : empData.monthlyTotals.regularHours} */}
+                          : empData.monthlyTotals.regularHours}
                         h
                       </span>
                     </td>
                     <td className="py-3 px-4 text-center bg-orange-50">
                       <span className="font-bold text-orange-600">
-                        {/* {viewType === "weekly"
+                        {viewType === "weekly"
                           ? empData.weeklyTotals.extraHours
-                          : empData.monthlyTotals.extraHours} */}
+                          : empData.monthlyTotals.extraHours}
                         h
                       </span>
                     </td>
                     <td className="py-3 px-4 text-center bg-purple-50">
                       <span className="font-bold text-purple-600">
-                        {/* {viewType === "weekly"
+                        {viewType === "weekly"
                           ? empData.weeklyTotals.totalHours
-                          : empData.monthlyTotals.totalHours} */}
+                          : empData.monthlyTotals.totalHours}
                         h
                       </span>
                     </td>
@@ -429,7 +429,7 @@ export const AttendanceSheet: React.FC = () => {
                   <td className="py-4 px-4 sticky left-0 bg-gray-50">
                     <span className="text-gray-900">TOTAIS GERAIS</span>
                   </td>
-                  {/* {workingDays.map((day) => (
+                  {workingDays.map((day) => (
                     <td
                       key={day.toISOString()}
                       className="py-4 px-2 text-center"
@@ -446,7 +446,7 @@ export const AttendanceSheet: React.FC = () => {
                         }
                       </span>
                     </td>
-                  ))} */}
+                  ))}
                   <td className="py-4 px-4 text-center bg-blue-100">
                     <span className="text-blue-700">
                       {attendanceData.grandTotals.totalDaysPresent}
