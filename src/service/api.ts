@@ -2,8 +2,8 @@ import axios, { AxiosInstance, InternalAxiosRequestConfig } from "axios";
 import { getToken } from "./auth";
 
 const api: AxiosInstance = axios.create({
-  // baseURL: "http://localhost:4080",
-   baseURL: "https://presenca-api.vercel.app",
+  baseURL: "http://localhost:4080",
+  //  baseURL: "https://presenca-api.vercel.app/",
 });
 
 api.interceptors.request.use(
