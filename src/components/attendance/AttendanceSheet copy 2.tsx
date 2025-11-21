@@ -9,11 +9,20 @@ import {
   Users,
   TrendingUp,
   Download,
+} from "lucide-react";
 import {
   format,
   startOfWeek,
   endOfWeek,
   addWeeks,
+  subWeeks,
+  addMonths,
+  subMonths,
+  startOfMonth,
+  eachDayOfInterval,
+  isWeekend,
+} from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
 import { Card, CardHeader, CardContent, CardTitle } from "../ui/Card";
