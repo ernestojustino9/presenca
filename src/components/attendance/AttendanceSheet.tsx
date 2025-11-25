@@ -554,7 +554,7 @@ export const AttendanceSheet: React.FC = () => {
             <strong>Departamento: </strong> Geral
           </span>
           <span>
-            <strong>Chefe de Equipa: </strong> Ernesto
+            <strong>Chefe de Equipa: </strong> João Silva
           </span>
         </div>
         <CardContent>
