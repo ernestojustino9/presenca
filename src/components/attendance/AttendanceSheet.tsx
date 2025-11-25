@@ -112,16 +112,8 @@ export const AttendanceSheet: React.FC = () => {
         periodEnd = endOfWeek(currentDate, { weekStartsOn: 1 });
       } else {
         // Período mensal: de 20 do mês atual a 21 do mês seguinte
-        periodStart = new Date(
-          currentDate.getFullYear(),
-          currentDate.getMonth(),
-          20
-        );
-        periodEnd = new Date(
-          currentDate.getFullYear(),
-          currentDate.getMonth() + 1,
-          21
-        );
+        periodStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 20);
+        periodEnd = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 21);
       }
 
       const [empRes, presRes] = await Promise.all([
@@ -205,29 +197,19 @@ export const AttendanceSheet: React.FC = () => {
       return endOfWeek(currentDate, { weekStartsOn: 1 });
     } else {
       // Período mensal: de 20 do mês atual a 21 do mês seguinte
-      return new Date(
-        currentDate.getFullYear(),
-        currentDate.getMonth() + 1,
-        21
-      );
+      return new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 21);
     }
   }, [viewType, currentDate]);
 
   const workingDays = useMemo(() => {
-    return eachDayOfInterval({
-      start: getPeriodStart,
-      end: getPeriodEnd,
-    }).filter((d) => !isWeekend(d));
+    return eachDayOfInterval({ start: getPeriodStart, end: getPeriodEnd }).filter((d) => !isWeekend(d));
   }, [getPeriodStart, getPeriodEnd]);
 
   // Variável para total de dias úteis (excluindo domingos e sábados) - varia de 25 a 27 dependendo do período
   const totalWorkingDays = useMemo(() => workingDays.length, [workingDays]);
 
   const attendanceData = useMemo<AttendanceData>(() => {
-    const allDays = eachDayOfInterval({
-      start: getPeriodStart,
-      end: getPeriodEnd,
-    });
+    const allDays = eachDayOfInterval({ start: getPeriodStart, end: getPeriodEnd });
     const sundays = allDays.filter((d) => d.getDay() === 0); // Domingo é 0
 
     const employeesData: EmployeeAttendance[] = activeEmployees.map((emp) => {
@@ -243,14 +225,7 @@ export const AttendanceSheet: React.FC = () => {
           ? getRegularHours(status, presence.entrada, presence.saida)
           : 0;
         const dayFraction = getDayFraction(status);
-        return {
-          date: dayStr,
-          status,
-          present,
-          extraHours,
-          regularHours,
-          dayFraction,
-        };
+        return { date: dayStr, status, present, extraHours, regularHours, dayFraction };
       });
       let totals: Totals = {
         daysPresent: dailyRecords.reduce((s, r) => s + r.dayFraction, 0),
@@ -297,14 +272,7 @@ export const AttendanceSheet: React.FC = () => {
       { daysPresent: 0, regularHours: 0, extraHours: 0, totalHours: 0 }
     );
     return { employees: employeesData, grandTotals };
-  }, [
-    activeEmployees,
-    presences,
-    workingDays,
-    viewType,
-    getPeriodStart,
-    getPeriodEnd,
-  ]);
+  }, [activeEmployees, presences, workingDays, viewType, getPeriodStart, getPeriodEnd]);
 
   const getTotalsForEmployee = (empData: EmployeeAttendance) =>
     viewType === "weekly" ? empData.weeklyTotals! : empData.monthlyTotals!;
@@ -447,21 +415,9 @@ export const AttendanceSheet: React.FC = () => {
       )}`;
     } else {
       // Período mensal: de 20 do mês atual a 21 do mês seguinte
-      const start = new Date(
-        currentDate.getFullYear(),
-        currentDate.getMonth(),
-        20
-      );
-      const end = new Date(
-        currentDate.getFullYear(),
-        currentDate.getMonth() + 1,
-        21
-      );
-      return `${format(start, "dd/MM/yyyy", { locale: ptBR })} - ${format(
-        end,
-        "dd/MM/yyyy",
-        { locale: ptBR }
-      )}`;
+      const start = new Date(currentDate.getFullYear(), currentDate.getMonth(), 20);
+      const end = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 21);
+      return `${format(start, "dd/MM/yyyy", { locale: ptBR })} - ${format(end, "dd/MM/yyyy", { locale: ptBR })}`;
     }
   };
 
@@ -631,15 +587,11 @@ export const AttendanceSheet: React.FC = () => {
               <tbody>
                 {attendanceData.employees.map((empData) => {
                   const t = getTotalsForEmployee(empData);
-                  const hasAbsence = empData.dailyRecords.some(
-                    (r) => r.status === "X"
-                  );
+                  const hasAbsence = empData.dailyRecords.some((r) => r.status === "X");
                   return (
                     <tr
                       key={empData.employee._id}
-                      className={`border-b hover:bg-gray-50 ${
-                        hasAbsence ? "bg-yellow-50" : ""
-                      }`}
+                      className={`border-b hover:bg-gray-50 ${hasAbsence ? "bg-yellow-50" : ""}`}
                     >
                       <td className="py-3 px-4 sticky left-0 bg-white">
                         <div>
@@ -664,9 +616,7 @@ export const AttendanceSheet: React.FC = () => {
                         if (rec.status !== "NAO_MARCADO") {
                           buttonText = rec.status;
                           if (rec.extraHours > 0) {
-                            <div className="text-xs text-orange-600 font-medium mt-1">
-                              buttonText += `+${rec.extraHours}h`;
-                            </div>;
+                            buttonText += `+${rec.extraHours}h`;
                           }
                         }
                         return (
