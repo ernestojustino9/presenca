@@ -21,7 +21,6 @@ interface SidebarProps {
 const menuItems = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { id: 'employees', label: 'Funcionários', icon: Users },
-  { id: 'timesheet', label: 'Registro Ponto', icon: Clock },
   { id: 'attendance', label: 'Folha Presença', icon: Calendar },
   { id: 'reports', label: 'Relatórios', icon: FileText },
 ];

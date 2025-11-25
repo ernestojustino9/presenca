@@ -1,0 +1,269 @@
+import React, { useState, useEffect, useMemo } from "react";
+import { Calendar, Download, TrendingUp, Clock, Users, BarChart3 } from 'lucide-react';
+import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval, parseISO } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { Button } from '../ui/Button';
+import { Input } from '../ui/Input';
+import { Card, CardHeader, CardContent, CardTitle } from '../ui/Card';
+import { toast } from "react-toastify";
+import { getPresencesWeekly, getPresencesMonthly } from "../../service/PresenceService";
+import { Presence } from "../../types";
+
+type ReportPeriod = 'week' | 'month' | 'custom';
+
+export const ReportsView: React.FC = () => {
+  const [presences, setPresences] = useState<Presence[]>([]);
+  const [period, setPeriod] = useState<ReportPeriod>('week');
+  const [startDate, setStartDate] = useState(format(startOfWeek(new Date()), 'yyyy-MM-dd'));
+  const [endDate, setEndDate] = useState(format(endOfWeek(new Date()), 'yyyy-MM-dd'));
+
+  // Fetch presences based on period
+  useEffect(() => {
+    const fetchPresences = async () => {
+      try {
+        let data;
+        if (period === 'week') {
+          data = await getPresencesWeekly(startDate, endDate);
+        } else if (period === 'month') {
+          const ano = new Date().getFullYear();
+          const mes = new Date().getMonth() + 1;
+          data = await getPresencesMonthly(ano, mes);
+        } else {
+          data = await getPresencesWeekly(startDate, endDate); // fallback custom
+        }
+        setPresences(data.presencas);
+      } catch (error: any) {
+        toast.error("Erro ao carregar presenças");
+      }
+    };
+
+    fetchPresences();
+  }, [period, startDate, endDate]);
+
+  const reportData = useMemo(() => {
+    let dateRange = { start: new Date(startDate), end: new Date(endDate) };
+
+    switch (period) {
+      case 'week':
+        dateRange = { start: startOfWeek(new Date()), end: endOfWeek(new Date()) };
+        break;
+      case 'month':
+        dateRange = { start: startOfMonth(new Date()), end: endOfMonth(new Date()) };
+        break;
+      case 'custom':
+        dateRange = { start: new Date(startDate), end: new Date(endDate) };
+        break;
+    }
+
+    const filteredEntries = presences.filter(p => {
+      const entryDate = parseISO(p.data);
+      return isWithinInterval(entryDate, dateRange);
+    });
+
+    const employeeStats = filteredEntries.map(p => ({
+      totalHours: p.horasExtras, // você pode somar horas trabalhadas se tiver
+      extraHours: p.horasExtras,
+      workingDays: 1,
+      lateArrivals: 0, // ajustar se tiver lógica de horários
+      punctualityRate: p.status === 'V' ? 100 : 0,
+    }));
+
+    const summary = {
+      totalEmployees: presences.length,
+      activeEmployees: presences.filter(emp => emp.funcionario.status === 'active').length,
+      totalHours: employeeStats.reduce((sum, emp) => sum + emp.totalHours, 0),
+      totalExtraHours: employeeStats.reduce((sum, emp) => sum + emp.extraHours, 0),
+      averagePunctuality: employeeStats.length
+        ? Math.round(employeeStats.reduce((sum, emp) => sum + emp.punctualityRate, 0) / employeeStats.length)
+        : 0,
+      totalLateArrivals: employeeStats.reduce((sum, emp) => sum + emp.lateArrivals, 0)
+    };
+
+    return { summary, employeeStats, dateRange };
+  }, [presences, period, startDate, endDate]);
+
+  const handlePeriodChange = (newPeriod: ReportPeriod) => {
+    setPeriod(newPeriod);
+    if (newPeriod === 'week') {
+      setStartDate(format(startOfWeek(new Date()), 'yyyy-MM-dd'));
+      setEndDate(format(endOfWeek(new Date()), 'yyyy-MM-dd'));
+    } else if (newPeriod === 'month') {
+      setStartDate(format(startOfMonth(new Date()), 'yyyy-MM-dd'));
+      setEndDate(format(endOfMonth(new Date()), 'yyyy-MM-dd'));
+    }
+  };
+
+  const exportReport = () => {
+    const csvContent = [
+      ['Nome', 'Departamento', 'Horas Extras', 'Dias Trabalhados', 'Pontualidade (%)'].join(','),
+      ...reportData.employeeStats.map(emp => [
+
+        emp.extraHours,
+        emp.workingDays,
+        emp.punctualityRate
+      ].join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `relatorio-${format(new Date(), 'yyyy-MM-dd')}.csv`;
+    link.click();
+  };
+
+  const getPeriodLabel = () => {
+    switch (period) {
+      case 'week': return 'Esta Semana';
+      case 'month': return 'Este Mês';
+      case 'custom': return `${format(reportData.dateRange.start, 'dd/MM', { locale: ptBR })} - ${format(reportData.dateRange.end, 'dd/MM', { locale: ptBR })}`;
+      default: return 'Período';
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header Controls */}
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+        <div className="flex items-center space-x-4">
+          <div className="flex bg-gray-100 rounded-lg p-1">
+            {(['week', 'month', 'custom'] as ReportPeriod[]).map((p) => (
+              <button
+                key={p}
+                onClick={() => handlePeriodChange(p)}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${period === p ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
+              >
+                {p === 'week' && 'Semana'}
+                {p === 'month' && 'Mês'}
+                {p === 'custom' && 'Personalizado'}
+              </button>
+            ))}
+          </div>
+
+          {period === 'custom' && (
+            <div className="flex items-center space-x-2">
+              <Input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="w-auto" />
+              <span className="text-gray-500">até</span>
+              <Input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="w-auto" />
+            </div>
+          )}
+        </div>
+
+        <Button onClick={exportReport}>
+          <Download className="w-4 h-4 mr-2" />
+          Exportar CSV
+        </Button>
+      </div>
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Total Hours */}
+        <Card>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Total de Horas</p>
+                <p className="text-2xl font-bold text-blue-600">{reportData.summary.totalHours}h</p>
+                <p className="text-sm text-gray-500">+{reportData.summary.totalExtraHours}h extras</p>
+              </div>
+              <Clock className="w-8 h-8 text-blue-600" />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Active Employees */}
+        <Card>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Funcionários Ativos</p>
+                <p className="text-2xl font-bold text-green-600">{reportData.summary.activeEmployees}</p>
+                <p className="text-sm text-gray-500">de {reportData.summary.totalEmployees} total</p>
+              </div>
+              <Users className="w-8 h-8 text-green-600" />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Average Punctuality */}
+        <Card>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Pontualidade Média</p>
+                <p className="text-2xl font-bold text-purple-600">{reportData.summary.averagePunctuality}%</p>
+                <p className="text-sm text-gray-500">{reportData.summary.totalLateArrivals} atrasos</p>
+              </div>
+              <TrendingUp className="w-8 h-8 text-purple-600" />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Period */}
+        <Card>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Período</p>
+                <p className="text-lg font-bold text-gray-900">{getPeriodLabel()}</p>
+              </div>
+              <Calendar className="w-8 h-8 text-orange-600" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Detailed Report Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <BarChart3 className="w-5 h-5 mr-2" />
+            Relatório Detalhado por Funcionário
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="text-left py-3 px-4 font-medium text-gray-900">Funcionário</th>
+                  <th className="text-center py-3 px-4 font-medium text-gray-900">Departamento</th>
+                  <th className="text-center py-3 px-4 font-medium text-gray-900">Horas Extras</th>
+                  <th className="text-center py-3 px-4 font-medium text-gray-900">Dias Trabalhados</th>
+                  <th className="text-center py-3 px-4 font-medium text-gray-900">Pontualidade</th>
+                </tr>
+              </thead>
+              <tbody>
+                {reportData.employeeStats.map(emp => (
+                  <tr key={emp._id} className="border-b border-gray-100 hover:bg-gray-50">
+                    <td className="py-4 px-4 font-medium text-gray-900">{emp.nome}</td>
+                    <td className="py-4 px-4 text-center text-blue-600">{emp.departamento}</td>
+                    <td className="py-4 px-4 text-center text-green-600">{emp.extraHours}h</td>
+                    <td className="py-4 px-4 text-center">{emp.workingDays}</td>
+                    <td className="py-4 px-4 text-center">
+                      <div className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        emp.punctualityRate >= 90 
+                          ? 'bg-green-100 text-green-800'
+                          : emp.punctualityRate >= 70
+                          ? 'bg-orange-100 text-orange-800'
+                          : 'bg-red-100 text-red-800'
+                      }`}>
+                        {emp.punctualityRate}%
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            {reportData.employeeStats.length === 0 && (
+              <div className="text-center py-8">
+                <BarChart3 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-500">Nenhum dado encontrado para o período selecionado.</p>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
